@@ -163,49 +163,141 @@ $(document).ready(function() {
 
 				// bind on click event
 				$(this).bind('click', function() {
-					methods.slideOutDetails(this, data, options);
+					methods.showDetails(this, data, options);
 				});
 			});
 		},
 
-		slideOutDetails: function(eg, data, options) {
+		detailsAnimateSlide: function(eg, slideOut, color, sg, data, options) {
+			console.log('slide out');
+
+			// add slideOut to DOM
+			slideOut.insertAfter(sg);
+
+			// slide out...
+			slideOut.animate({
+				'height': '+=200px'
+			}, options.slideDuration, function() {
+				console.log('height animation done');
+			});
+
+			// ...create and slide up the top arrow...
+			var topArrow = $('<toparrow></toparrow>');
+			topArrow.css({
+				'border-bottom-color'   :color,
+				'top'   :slideOut.offset().top + 'px',
+				'left'  :eg.offset().left + 'px'
+			});
+			slideOut.append(topArrow);
+			topArrow.animate({ 'top':'-=10px' });
+
+			// and slide other open sliders in...
+			$('slideout', data.ME).each(function() {
+				var s = $(this);
+				if (s.get(0) != slideOut.get(0)) {
+					// slide in and remove element
+					s.animate({
+						'height': '0px'
+					}, options.slideDuration, function() {
+						s.remove();
+					});
+				}
+			});
+
+		},
+
+		detailsAnimateTransition: function(eg, slideOut, color, ne, data, options) {
+			console.log('transition');
+
+			// add slideOut to DOM
+			slideOut.insertAfter(ne);
+			slideOut.css({
+				'height': '+=200px',
+				'margin-top': '-200px',
+				'opacity' : '0'
+			});
+
+			// fade in new slideOut...
+			slideOut.animate({
+				'opacity'   : '1'
+			}, options.slideDuration, function() {
+				console.log('done!');
+				slideOut.css({ 'margin-top': '0px'});
+				ne.remove();
+			});
+
+			// ..and slide in old slideout
+			ne.animate({
+				'opacity'    : '0'
+			}, options.slideDuration, function() {
+				console.log('done2!');
+			});
+		},
+
+		showDetails: function(eg, data, options) {
+			var EG      = $(eg);
+			var SG      = EG.parent().parent();
+			var NE      = SG.next();
+			var color   = EG.css('background-color');
+
+			// add slideout element
+			var slideOut = $('<slideout>this should be rendered using an ajax call for eventGroup uuid ' + EG.attr('uuid') + '</slideout>');
+				slideOut.css({'background-color': color});
+
+			// fetch details using ajax
+			console.log('perform ajax call to fill details div with eventGroup information (uuid: '+EG.attr('uuid')+')');
+
+			// when done, the following should be executed:
+			// is the next element also a slideout element?
+			if (NE && NE.is('slideout')) {
+				// transition
+				methods.detailsAnimateTransition(EG, slideOut, color, NE, data, options);
+			} else {
+				// slide out
+				methods.detailsAnimateSlide(EG, slideOut, color, SG, data, options);
+			}
+
+			/*
 			var EG = $(eg);
 			var SG = EG.parent().parent();
 
-			eventGroupUUID = EG.attr('uuid');
-//			subjectGroupUUID = SG.attr('uuid');
-
 			// create a slideOut element
-			var slideOut = $('<slideout>this should be rendered using an ajax call</slideout>');
+			var slideOut = $('<slideout>this should be rendered using an ajax call for eventGroup uuid ' + EG.attr('uuid') + '</slideout>');
+			// when ajax call is ready, call the animation method
+
+			//methods.slideInAnimation(data, options);
 
 			// set background-color
 			var bc = EG.css('background-color');
 
-			slideOut.css({
-				'background-color': bc,
-				'z-index': 100
-			});
+			slideOut.css({'background-color': bc});
+
+			// get next element
+			nextElement = SG.next();
+			console.log(nextElement);
+			console.log(nextElement.is('slideout'));
 
 			// insert below the subject group
-			slideOut.insertAfter(SG);
+			slideOut.insertAfter( (nextElement.is('slideout')) ? nextElement : SG );
 
 			// fetch details using ajax			
-			console.log('perform ajax call to fill details div with eventGroup information (uuid: '+eventGroupUUID+')');
+			console.log('perform ajax call to fill details div with eventGroup information (uuid: '+EG.attr('uuid')+')');
 
 			// and slide out...
 			slideOut.animate({ 
 				'height': '+=200px'
 			}, options.slideDuration, function() {
-				// and slide the topArrow up
-				var topArrow = $('<toparrow></toparrow>');
-				topArrow.css({
-					'border-bottom-color'	: bc,
-					'top'			: slideOut.offset().top + 'px',
-					'left'			: EG.offset().left + 'px'
-				});
-				slideOut.append(topArrow);
-				topArrow.animate({ 'top': '-=10px' });
 			});
+
+			// and slide the topArrow up
+			var topArrow = $('<toparrow></toparrow>');
+			topArrow.css({
+				'border-bottom-color':bc,
+				'top':slideOut.offset().top + 'px',
+				'left':EG.offset().left + 'px'
+			});
+			slideOut.append(topArrow);
+			topArrow.animate({ 'top':'-=10px' });
 
 			// slide in any slider beneath another subjectGroup
 			$('slideout', data.ME).each(function() {
@@ -222,7 +314,7 @@ $(document).ready(function() {
 					});
 				}
 			});
-
+			*/
 		},
 
 		// position one eventGroup based on it's relative start time
