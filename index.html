@@ -10,6 +10,17 @@ body {
 	font-size: 62.5%;
 }
 
+toparrow {
+	display: block;
+	width: 0; 
+	height: 0; 
+	border-left: 15px solid transparent;
+	border-right: 15px solid transparent;
+	
+	border-bottom: 15px solid black;
+	position: absolute;
+}
+
 timeline {
 	display: block;
 	width: 100%;
@@ -43,7 +54,7 @@ timeline subjectGroups subjectGroup {
 	height: auto;
 	border-top: 1pt solid #d9e0e2;
 	border-bottom: 1pt solid #a4bcc4;
-	height: 1.5em;
+	height: 2.5em;
 	background-color: #fafafa;
 }
 
@@ -185,13 +196,19 @@ $(document).ready(function() {
 				'height': '+=200px'
 			}, options.slideDuration, function() {
 				console.log('done!');
+				var topArrow = $('<toparrow></toparrow>');
+				
+				topArrow.css({
+					'top'	: '20px',
+					'left'	: '500px'
+				});
+
+				slideOut.append(topArrow);
 			});
 
 			// slide in any slider beneath another subjectGroup
 			$('slideout', data.ME).each(function() {
 				var s = $(this);
-				console.log(s);
-				console.log(s.prev());
 				//if (s.prev().get(0) != SG.get(0)) {
 				if (s.get(0) != slideOut.get(0)) {
 					// slide in and remove element
@@ -254,8 +271,6 @@ $(document).ready(function() {
 		// get the right position of the SubjectGroup's details, and
 		// hence the left position/beginning of the timeline
 		getLeftPosition: function(data,options) {
-			console.log($('subjectGroup > details', data.EM).first().width());
-			console.log($('subjectGroup > details', data.EM).first().outerWidth());
 			return $('subjectGroup > details', data.EM).first().outerWidth();
 		},
 
