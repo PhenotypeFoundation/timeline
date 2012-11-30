@@ -14,10 +14,9 @@ toparrow {
 	display: block;
 	width: 0; 
 	height: 0; 
-	border-left: 15px solid transparent;
-	border-right: 15px solid transparent;
-	
-	border-bottom: 15px solid black;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 10px solid black;
 	position: absolute;
 }
 
@@ -33,7 +32,6 @@ timeline slideout {
 	display: block;
 	width: 100%;
 	height: 0px;
-	opacity: 0.5;
 }
 
 timeline name {
@@ -183,7 +181,10 @@ $(document).ready(function() {
 			// set background-color
 			var bc = EG.css('background-color');
 
-			slideOut.css('background-color', bc);
+			slideOut.css({
+				'background-color': bc,
+				'z-index': 100
+			});
 
 			// insert below the subject group
 			slideOut.insertAfter(SG);
@@ -195,22 +196,24 @@ $(document).ready(function() {
 			slideOut.animate({ 
 				'height': '+=200px'
 			}, options.slideDuration, function() {
-				console.log('done!');
+				// and slide the topArrow up
 				var topArrow = $('<toparrow></toparrow>');
-				
 				topArrow.css({
-					'top'	: '20px',
-					'left'	: '500px'
+					'border-bottom-color'	: bc,
+					'top'			: slideOut.offset().top + 'px',
+					'left'			: EG.offset().left + 'px'
 				});
-
 				slideOut.append(topArrow);
+				topArrow.animate({ 'top': '-=10px' });
 			});
 
 			// slide in any slider beneath another subjectGroup
 			$('slideout', data.ME).each(function() {
 				var s = $(this);
-				//if (s.prev().get(0) != SG.get(0)) {
 				if (s.get(0) != slideOut.get(0)) {
+					// slide arrow in
+					$('toparrow', s).animate({ 'top': '+=10px' });
+
 					// slide in and remove element
 					s.animate({
 						'height': '0px'
