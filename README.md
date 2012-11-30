@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-timeline
-========
-
 timeline brainstorm / proof of concept
 =======
    Copyright 2012 Jeroen Wesbeek
@@ -17,5 +13,3 @@ timeline brainstorm / proof of concept
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
->>>>>>> adding README / license
