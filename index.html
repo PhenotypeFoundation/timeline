@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<style type="text/css">
+body {
+	margin: 0;
+	padding: 0;
+	font-size: 62.5%;
+}
+
+timeline {
+	display: block;
+	width: 100%;
+
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", sans-serif;
+	font-size: 1.2em;
+}
+
+timeline slideout {
+	display: block;
+	width: 100%;
+	height: 0px;
+	opacity: 0.5;
+}
+
+timeline name {
+	width: 100%;
+	font-weight: bold;
+	color: #fff;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.68);
+}
+
+timeline subjectGroups {
+	display: block;
+	width: 100%;
+}
+
+timeline subjectGroups subjectGroup {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-top: 1pt solid #d9e0e2;
+	border-bottom: 1pt solid #a4bcc4;
+	height: 1.5em;
+	background-color: #fafafa;
+}
+
+timeline subjectGroups subjectGroup details {
+	display: inline-block;
+	height: 100%;
+	background-color: #0081bc;
+	padding: 0em 1.3em 0em 1.3em;
+}
+
+timeline subjectGroups subjectGroup details name {
+	display: block;
+	width: 100%;
+}
+
+timeline subjectGroups subjectGroup eventGroups {
+}
+
+timeline subjectGroups subjectGroup eventGroups eventGroup {
+	display: inline-block;
+	position: absolute;
+	width: 10em;
+	height: 1.5em;
+	background-color: #81c8bd;
+}
+
+timeline subjectGroups subjectGroup eventGroups eventGroup name {
+}
+</style>
+
+</head>
+<body>
+
+<timeline startTime="1354276293">
+	<subjectGroups>
+	
+		<subjectGroup uuid="abc">
+			<details>
+				<name>subject group 1</name>
+			</details>
+			<eventGroups>
+				<eventGroup startTime="18000" uuid="bcd">
+					<name>eventGroup A</name>
+				</eventGroup>
+				<eventGroup startTime="86400" color="e95fbe" uuid="cde">
+					<name>eventGroup B</name>
+				</eventGroup>
+				<eventGroup startTime="127800" uuid="def">
+					<name>eventGroup C</name>
+				</eventGroup>
+				<eventGroup startTime="302400" color="ff6d37" uuid="efg">
+					<name>eventGroup N</name>
+				</eventGroup>
+			</eventGroups>
+		</subjectGroup>
+
+		<subjectGroup uuid="fgh">
+			<details>
+				<name>another long subject group 2</name>
+			</details>
+			<eventGroups>
+				<eventGroup startTime="0" uuid="ghi">
+					<name>eventGroup D</name>
+				</eventGroup>
+				<eventGroup startTime="86400" color="e95fbe" uuid="hij">
+					<name>eventGroup B</name>
+				</eventGroup>
+				<eventGroup startTime="259200" uuid="ijk">
+					<name>eventGroup E</name>
+				</eventGroup>
+				<eventGroup startTime="388800" uuid="jkl">
+					<name>eventGroup F</name>
+				</eventGroup>
+			</eventGroups>
+		</subjectGroup>
+
+	</subjectGroups>
+</timeline>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('timeline').timeline();
+	//$('eventGroup').timeline();
+});
+
+// jQuery plugin to handle the timeline
+(function($){
+	// plugin methods
+	var methods = {
+		// retun the startTime of the latest eventGroup. Note that
+		// this is relative to the beginning of the timeline / start 
+		// of the study
+		getStartTimeOfLastEventGroup: function(data,options) {
+			var startTime = 0;
+			$('eventGroup', data.me).each(function() {
+				var relTime = parseInt($(this).attr('startTime'));
+				if (relTime > startTime) startTime = relTime;
+			});
+			return startTime;
+		},
+
+		// position all event groups based on their relative start time
+		// to the beginning of the study / timeline
+		initEventGroups: function(data, options) {
+			$('eventGroup', data.me).each(function() {
+				// position this event group
+				methods.positionEventGroup(this, data, options);
+
+				// bind on click event
+				$(this).bind('click', function() {
+					methods.slideOutDetails(this, data, options);
+				});
+			});
+		},
+
+		slideOutDetails: function(eg, data, options) {
+			var EG = $(eg);
+			var SG = EG.parent().parent();
+
+			eventGroupUUID = EG.attr('uuid');
+//			subjectGroupUUID = SG.attr('uuid');
+
+			// create a slideOut element
+			var slideOut = $('<slideout>this should be rendered using an ajax call</slideout>');
+
+			// set background-color
+			var bc = EG.css('background-color');
+
+			slideOut.css('background-color', bc);
+
+			// insert below the subject group
+			slideOut.insertAfter(SG);
+
+			// fetch details using ajax			
+			console.log('perform ajax call to fill details div with eventGroup information (uuid: '+eventGroupUUID+')');
+
+			// and slide out...
+			slideOut.animate({ 
+				'height': '+=200px'
+			}, options.slideDuration, function() {
+				console.log('done!');
+			});
+
+			// slide in any slider beneath another subjectGroup
+			$('slideout', data.ME).each(function() {
+				var s = $(this);
+				console.log(s);
+				console.log(s.prev());
+				//if (s.prev().get(0) != SG.get(0)) {
+				if (s.get(0) != slideOut.get(0)) {
+					// slide in and remove element
+					s.animate({
+						'height': '0px'
+					}, options.slideDuration, function() {
+						s.remove();
+					});
+				}
+			});
+
+		},
+
+		// position one eventGroup based on it's relative start time
+		// and set a background color if defined
+		positionEventGroup: function(eg, data, options) {
+			//console.log('position eventGroup:');
+			var EG = $(eg);
+			var startTime = parseInt(EG.attr('startTime'));
+			var left = (((data.width - data.left) / data.latestRelativeTime) * startTime) + data.left;
+			//var left = (((data.width - data.left) / data.latestRelativeTime) * startTime);
+			
+			//console.log(EG);
+			//console.log('((('+data.width+'-'+data.left+' / '+data.latestRelativeTime+') * '+startTime+') = '+left);
+			//console.log('((('+data.width+'-'+data.left+' / '+data.latestRelativeTime+') * '+startTime+') + '+data.left+' = '+left);
+			//console.log(startTime + ' >> ' + left);
+
+			// position element
+			EG.css({ 'left': left });
+
+			// does this eventGroup has a color defined?
+			var c = EG.attr('color');
+			if (c) EG.css({ 'background-color': '#'+c });
+		},
+
+		// get the max width of the SubjectGroup details
+		getMaxSubjectGroupDetailsWidth: function(data,options) {
+			var width = 0;
+			var outerWidth = 0;
+
+			// determine max width
+			$('subjectGroup > details', data.EM).each(function() {
+				var w = $(this).width();
+				var ow = $(this).outerWidth();
+				if (w > width) width = w;
+				if (ow > outerWidth) outerWidth = ow;
+			});
+
+			// resize all details elements to this max width
+			$('subjectGroup > details', data.EM).each(function() {
+				var e = $(this);
+				if (e.width() < width) {
+					e.css( { 'width': width + 'px' } );
+				}
+			});
+
+			return outerWidth;
+		},
+
+		// get the right position of the SubjectGroup's details, and
+		// hence the left position/beginning of the timeline
+		getLeftPosition: function(data,options) {
+			console.log($('subjectGroup > details', data.EM).first().width());
+			console.log($('subjectGroup > details', data.EM).first().outerWidth());
+			return $('subjectGroup > details', data.EM).first().outerWidth();
+		},
+
+		// initialize a timeline
+		init: function(me,data,options) {
+			//console.log('* initializing timeline');
+			//console.log(me);
+
+			// get me
+			var ME	= $(me);
+
+			// reference myself
+			data.me	= me;
+			data.ME	= ME;
+
+			// determine start and stop time
+			data.startTime		= parseInt(ME.attr('startTime'));
+			data.latestRelativeTime	= methods.getStartTimeOfLastEventGroup(data,options);
+			data.endTime		= data.startTime + data.latestRelativeTime;
+
+			// determine and set timeline width
+			data.width		= ME.width();
+			data.left		= methods.getMaxSubjectGroupDetailsWidth(data,options);
+
+			// position eventGroups
+			methods.initEventGroups(data, options);
+		}
+	};
+
+	// define the jquery plugin code
+	$.fn.timeline = function(options) {
+		// default settings
+		var defaults = {
+			'slideDuration'	: 500
+		};
+
+		// data
+		var data = {
+		};
+
+		// extend the jQuery options with the defaults
+		var options = $.extend(defaults, options);
+
+		// iterate through DOM elements and initialize them
+		return this.each(function() {
+			methods.init(this,data,options);
+
+			console.log('options:');
+			console.log(options);
+			console.log('data:');
+			console.log(data);
+		});
+	};
+})(jQuery);
+
+</script>
+
+</body>
+</html>
