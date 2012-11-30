@@ -206,6 +206,18 @@ $(document).ready(function() {
 
 		},
 
+		detailsClose: function(slideOut, data, options) {
+			// slide slider in...
+			slideOut.animate({
+				'height': '0px'
+			}, options.slideDuration, function() {
+				slideOut.remove();
+			});
+
+			// ...and slide arrow down
+			$('toparrow', slideOut).animate({ 'top': '+=10px' });
+		},
+
 		detailsAnimateTransition: function(eg, slideOut, color, ne, data, options) {
 			console.log('transition');
 
@@ -217,6 +229,15 @@ $(document).ready(function() {
 				'opacity' : '0'
 			});
 
+			// ...create the top arrow...
+			var topArrow = $('<toparrow></toparrow>');
+			topArrow.css({
+				'border-bottom-color'   :color,
+				'top'   :slideOut.offset().top + 'px',
+				'left'  :eg.offset().left + 'px'
+			});
+			slideOut.append(topArrow);
+
 			// fade in new slideOut...
 			slideOut.animate({
 				'opacity'   : '1'
@@ -224,14 +245,18 @@ $(document).ready(function() {
 				console.log('done!');
 				slideOut.css({ 'margin-top': '0px'});
 				ne.remove();
+				topArrow.animate({ 'top':'-=10px' });
 			});
 
-			// ..and slide in old slideout
-			ne.animate({
-				'opacity'    : '0'
-			}, options.slideDuration, function() {
-				console.log('done2!');
-			});
+			// ..and slide in old slideout...
+//			ne.animate({
+//				'opacity'    : '0'
+//			}, options.slideDuration, function() {
+//				console.log('done2!');
+//			});
+
+			// ...and arrow...
+			$('toparrow', ne).animate({ 'top': '+=10px' });
 		},
 
 		showDetails: function(eg, data, options) {
@@ -241,7 +266,7 @@ $(document).ready(function() {
 			var color   = EG.css('background-color');
 
 			// add slideout element
-			var slideOut = $('<slideout>this should be rendered using an ajax call for eventGroup uuid ' + EG.attr('uuid') + '</slideout>');
+			var slideOut = $('<slideout><close>close</close> this should be rendered using an ajax call for eventGroup uuid ' + EG.attr('uuid') + '</slideout>');
 				slideOut.css({'background-color': color});
 
 			// fetch details using ajax
@@ -369,12 +394,18 @@ $(document).ready(function() {
 			return $('subjectGroup > details', data.EM).first().outerWidth();
 		},
 
+		bindEventHandlers: function(me, data, options) {
+			me.on('click', 'close', function () {
+				methods.detailsClose($(this).parent(), data, options);
+			});
+		},
+
 		// initialize a timeline
 		init: function(me,data,options) {
 			//console.log('* initializing timeline');
 			//console.log(me);
 
-			// get me
+			// get me, myself and I
 			var ME	= $(me);
 
 			// reference myself
@@ -392,6 +423,9 @@ $(document).ready(function() {
 
 			// position eventGroups
 			methods.initEventGroups(data, options);
+
+			// bind event handlers
+			methods.bindEventHandlers(ME, data, options);
 		}
 	};
 
